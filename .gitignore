@@ -1,0 +1,14 @@
+# Rust build artifacts
+/target/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# direnv
+.direnv/
+
+# macOS
+.DS_Store

@@ -1,0 +1,38 @@
+[package]
+name = "bonk"
+version = "0.1.0"
+edition = "2021"
+authors = ["toph"]
+description = "CLI multitool for NixOS workflows - wraps nh, nix, and nix-store"
+license = "GPL-3.0"
+repository = "https://github.com/tophc7/bonk"
+keywords = ["nix", "nixos", "cli", "nh"]
+categories = ["command-line-utilities"]
+
+[dependencies]
+# Error handling
+anyhow = "1.0"
+
+# CLI parsing with environment variable support
+clap = { version = "4", features = ["derive", "env"] }
+
+# Hostname detection
+hostname = "0.4"
+
+# Colored terminal output
+owo-colors = "4"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+# Serial test execution for tests that modify global state (env vars)
+serial_test = "3"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
