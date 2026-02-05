@@ -15,6 +15,7 @@ pub struct CommandRunner {
 }
 
 impl CommandRunner {
+    #[must_use]
     pub fn new(program: impl Into<String>) -> Self {
         Self {
             program: program.into(),
@@ -24,6 +25,7 @@ impl CommandRunner {
         }
     }
 
+    #[must_use]
     pub fn args<I, S>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = S>,
@@ -33,12 +35,14 @@ impl CommandRunner {
         self
     }
 
+    #[must_use]
     pub fn arg(mut self, arg: impl Into<String>) -> Self {
         self.args.push(arg.into());
         self
     }
 
     #[allow(dead_code)]
+    #[must_use]
     pub fn args_if<I, S>(self, condition: bool, args: I) -> Self
     where
         I: IntoIterator<Item = S>,
@@ -51,6 +55,7 @@ impl CommandRunner {
         }
     }
 
+    #[must_use]
     pub fn arg_if(self, condition: bool, arg: impl Into<String>) -> Self {
         if condition {
             self.arg(arg)
@@ -59,11 +64,13 @@ impl CommandRunner {
         }
     }
 
+    #[must_use]
     pub fn show_command(mut self, show: bool) -> Self {
         self.show_command = show;
         self
     }
 
+    #[must_use]
     pub fn inherit_stdio(mut self, inherit: bool) -> Self {
         self.inherit_stdio = inherit;
         self
@@ -132,13 +139,20 @@ impl CommandRunner {
 
 #[allow(dead_code)]
 pub fn program_exists(program: &str) -> bool {
-    Command::new("which")
+    match Command::new("which")
         .arg(program)
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
-        .map(|s| s.success())
-        .unwrap_or(false)
+    {
+        Ok(status) => status.success(),
+        Err(e) => {
+            // Log the error rather than silently swallowing it.
+            // This helps diagnose issues like `which` not being available.
+            tracing::warn!("Failed to check if '{}' exists: {}", program, e);
+            false
+        }
+    }
 }
 
 #[cfg(test)]

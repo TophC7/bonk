@@ -1,13 +1,16 @@
 //! CLI argument definitions.
+//!
+//! This module defines the command-line interface using clap's derive macros.
+//! The CLI structure is publicly exported via lib.rs for build-time tooling
+//! (shell completion generation, man page generation, etc.).
 
-mod build;
-mod rebuild;
-mod root;
-mod try_pkg;
-mod update;
-
-// Store module is public so command implementations can access argument types
+// All modules are public so lib.rs consumers can access types for codegen
+pub mod build;
+pub mod rebuild;
+pub mod root;
 pub mod store;
+pub mod try_pkg;
+pub mod update;
 
 pub use build::BuildArgs;
 pub use rebuild::RebuildArgs;

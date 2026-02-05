@@ -26,6 +26,11 @@ owo-colors = "4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+[build-dependencies]
+# Shell completion generation at build time (fish, bash, zsh, etc.)
+clap = { version = "4", features = ["derive", "env"] }
+clap_complete = "4"
+
 [dev-dependencies]
 # Serial test execution for tests that modify global state (env vars)
 serial_test = "3"

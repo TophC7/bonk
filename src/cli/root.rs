@@ -4,7 +4,13 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use super::{BuildArgs, RebuildArgs, StoreCommands, TryArgs, UpdateArgs};
+// Use explicit submodule paths for build.rs compatibility.
+// build.rs mirrors this structure so these paths resolve correctly there too.
+use super::build::BuildArgs;
+use super::rebuild::RebuildArgs;
+use super::store::StoreCommands;
+use super::try_pkg::TryArgs;
+use super::update::UpdateArgs;
 
 /// NixOS workflow multitool - wraps nh, nix, and nix-store.
 #[derive(Parser)]

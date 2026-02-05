@@ -53,6 +53,7 @@
           nativeBuildInputs = with pkgs; [
             pkg-config
             rustToolchain
+            installShellFiles # For installing shell completions
           ];
 
         in
@@ -87,6 +88,22 @@
             };
 
             inherit nativeBuildInputs;
+
+            # Install shell completions generated at build time by build.rs.
+            # build.rs writes completions to $OUT_DIR/completions/ and records
+            # the path in completions_dir.txt for reliable discovery.
+            postInstall = ''
+              # Read the completions directory path from the file created by build.rs
+              completions_path_file=$(find target -name "completions_dir.txt" -type f | head -n1)
+              if [ -f "$completions_path_file" ]; then
+                completions_dir=$(cat "$completions_path_file")
+                if [ -d "$completions_dir" ]; then
+                  installShellCompletion --fish "$completions_dir/bonk.fish"
+                  installShellCompletion --bash "$completions_dir/bonk.bash"
+                  installShellCompletion --zsh "$completions_dir/_bonk"
+                fi
+              fi
+            '';
 
             meta = with pkgs.lib; {
               description = "NixOS workflow multitool - wraps nh, nix, and nix-store";
