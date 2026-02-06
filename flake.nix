@@ -31,9 +31,10 @@
         default = self.homeManagerModules.bonk;
       };
 
-      # Overlay for adding bonk to pkgs
+      # Overlay for adding bonk-nix to pkgs
+      # Named bonk-nix to avoid conflict with nixpkgs bonk package
       overlays.default = final: prev: {
-        bonk = self.packages.${final.system}.default;
+        bonk-nix = self.packages.${final.system}.default;
       };
     }
     //

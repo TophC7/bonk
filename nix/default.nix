@@ -56,7 +56,7 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
-      pkgs.bonk
+      pkgs.bonk-nix
       pkgs.nh  # Required for rebuild, gc commands
     ];
 
