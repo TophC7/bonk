@@ -5,6 +5,7 @@ use std::path::Path;
 use anyhow::Result;
 
 use crate::cli::BuildArgs;
+use crate::env;
 use crate::exec::CommandRunner;
 use crate::flake::resolve_flake_path;
 use crate::output;
@@ -16,11 +17,29 @@ pub fn run(args: &BuildArgs, flake_path: Option<&Path>) -> Result<()> {
         None => resolve_flake_path(flake_path)?,
     };
 
+    // Resolve build host: --local disables, --build-host overrides, else env fallback
+    let build_host = if args.local {
+        None
+    } else {
+        args.build_host.clone().or_else(env::get_build_host)
+    };
+
     output::info(&format!("Building: {}", target));
+
+    if let Some(ref bh) = build_host {
+        output::status(&format!("Building on remote host: {}", bh));
+    }
 
     let mut runner = CommandRunner::new("nix").arg("build");
 
     runner = runner.arg(&target);
+
+    // Configure remote builder if specified
+    // --max-jobs 0 forces all builds to go to the remote builder
+    if let Some(ref bh) = build_host {
+        let builder_spec = format!("ssh://{}", bh);
+        runner = runner.args(["--builders", &builder_spec, "--max-jobs", "0"]);
+    }
 
     if args.no_link {
         runner = runner.arg("--no-link");

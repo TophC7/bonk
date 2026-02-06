@@ -23,6 +23,14 @@ pub struct BuildArgs {
     /// Show what would be built without building.
     #[arg(short = 'n', long)]
     pub dry_run: bool,
+
+    /// Remote host to build on (overrides BONK_BUILD_HOST).
+    #[arg(short = 'H', long)]
+    pub build_host: Option<String>,
+
+    /// Force local build, ignoring BONK_BUILD_HOST.
+    #[arg(short, long)]
+    pub local: bool,
 }
 
 #[cfg(test)]
@@ -49,6 +57,8 @@ mod tests {
         assert!(args.out_link.is_none());
         assert!(!args.trace);
         assert!(!args.dry_run);
+        assert!(args.build_host.is_none());
+        assert!(!args.local);
     }
 
     #[test]
@@ -72,5 +82,17 @@ mod tests {
     #[test]
     fn test_trace() {
         assert!(parse(&["-t"]).trace);
+    }
+
+    #[test]
+    fn test_build_host_flag() {
+        let args = parse(&["-H", "builder@remote"]);
+        assert_eq!(args.build_host, Some("builder@remote".to_string()));
+    }
+
+    #[test]
+    fn test_local_flag() {
+        assert!(parse(&["--local"]).local);
+        assert!(parse(&["-l"]).local);
     }
 }
