@@ -12,6 +12,8 @@
 #     extraArgs = [ "--impure" ];
 #   };
 
+bonkFlake:
+
 { config, lib, pkgs, ... }:
 
 let
@@ -56,7 +58,7 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
-      pkgs.bonk-nix
+      bonkFlake.packages.${pkgs.system}.default
       pkgs.nh  # Required for rebuild, gc commands
     ];
 

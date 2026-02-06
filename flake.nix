@@ -19,15 +19,15 @@
     }:
     # System-agnostic outputs
     {
-      # NixOS module
+      # NixOS module (curried: takes self to access packages)
       nixosModules = {
-        bonk = import ./nix/default.nix;
+        bonk = import ./nix/default.nix self;
         default = self.nixosModules.bonk;
       };
 
-      # Home Manager module
+      # Home Manager module (curried: takes self to access packages)
       homeManagerModules = {
-        bonk = import ./nix/home.nix;
+        bonk = import ./nix/home.nix self;
         default = self.homeManagerModules.bonk;
       };
 
