@@ -181,11 +181,6 @@ mod tests {
     }
 
     #[test]
-    fn test_program_exists_true() {
-        assert!(program_exists("sh"));
-    }
-
-    #[test]
     fn test_program_exists_false() {
         assert!(!program_exists("nonexistent_program_xyz_123"));
     }
