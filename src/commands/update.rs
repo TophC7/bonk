@@ -19,15 +19,12 @@ pub fn run(args: &UpdateArgs, flake_path: Option<&Path>) -> Result<()> {
         output::info(&format!("Updating inputs: {}", args.inputs.join(", ")));
     }
 
-    let mut runner = CommandRunner::new("nix").args(["flake", "update"]);
+    let mut runner = CommandRunner::new("nix").args(["flake", "update", "--flake", &flake]);
 
-    if !args.inputs.is_empty() {
-        for input in &args.inputs {
-            runner = runner.arg(input);
-        }
+    // Add specific inputs to update (if none specified, all inputs are updated)
+    for input in &args.inputs {
+        runner = runner.arg(input);
     }
-
-    runner = runner.arg(&flake);
 
     runner = runner.arg_if(args.commit, "--commit-lock-file");
 
