@@ -19,9 +19,15 @@
     }:
     # System-agnostic outputs
     {
+      # NixOS module
+      nixosModules = {
+        bonk = import ./nix/default.nix;
+        default = self.nixosModules.bonk;
+      };
+
       # Home Manager module
       homeManagerModules = {
-        bonk = import ./nix/module.nix;
+        bonk = import ./nix/home.nix;
         default = self.homeManagerModules.bonk;
       };
 
