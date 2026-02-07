@@ -1,7 +1,6 @@
 <h1>
   <picture>
-    <source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/2744_fe0f/512.webp" type="image/webp">
-    <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2744_fe0f/512.gif" alt="❄" width="32" height="32">
+    <img src="./public/bonk.png" alt="❄" width="90" height="90">
   </picture>
   bonk
 </h1>
@@ -12,7 +11,7 @@ Bonk is essentially yay.nix rewritten in Rust. It provides a simplified, user-fr
 
 ## Why bonk?
 
-- **Less typing** - `bonk r` instead of the whole rebuild dance
+- **Less typing** - `bonk s` instead of the whole rebuild dance
 - **Smart defaults** - Detects your hostname, finds your flake, remembers your preferences
 - **Remote builds** - Offload compilation to a build server with a single flag
 - **Store management** - GC, optimize, repair, and nuke commands in one place
@@ -21,8 +20,8 @@ Bonk is essentially yay.nix rewritten in Rust. It provides a simplified, user-fr
 ## Quick Start
 
 ```bash
-# Rebuild your NixOS config
-bonk rebuild
+# Switch to your NixOS config
+bonk switch
 
 # Update all flake inputs
 bonk update
@@ -36,24 +35,51 @@ bonk store gc
 
 ## Commands
 
-### rebuild (alias: r)
+### switch (alias: s)
 
-Rebuild your NixOS/Home Manager configuration. Wraps `nh os switch`.
+Build and activate NixOS configuration now. Wraps `nh os switch`.
 
 ```bash
-bonk rebuild                      # Rebuild current host
-bonk r                            # Same thing, shorter
-bonk r -H rune                    # Rebuild for specific host
-bonk r -B buildserver             # Offload build to remote host
-bonk r --local                    # Force local build (ignore BONK_BUILD_HOST)
-bonk r -t                         # Enable --show-trace for debugging
-bonk r -s https://cache.example.com -k "key:AAAA..."  # Use extra cache
-bonk r -n                         # Dry run - show what would be built
+bonk switch                       # Switch current host
+bonk s                            # Same thing, shorter
+bonk s -H rune                    # Switch specific host
+bonk s -T root@192.168.1.50       # Deploy to remote host via SSH
+bonk s -B buildserver             # Offload build to remote host
+bonk s --local                    # Force local build (ignore BONK_BUILD_HOST)
+bonk s -t                         # Enable --show-trace for debugging
+bonk s -s https://cache.example.com -k "key:AAAA..."  # Use extra cache
+bonk s -n                         # Dry run - show what would be built
 ```
 
 Options:
 - `-H, --host <HOST>` - Target host (defaults to current hostname)
-- `-B, --build-host <HOST>` - Build on a remote host
+- `-T, --target-host <HOST>` - Deploy to a remote host via SSH (e.g. root@192.168.1.50)
+- `-B, --build-host <HOST>` - Build on a remote host instead of locally
+- `--local` - Force local build, ignoring BONK_BUILD_HOST
+- `-t, --trace` - Enable --show-trace for debugging
+- `-s, --substituter <URL>` - Extra binary cache URL
+- `-k, --key <KEY>` - Trusted public key for the cache
+- `-n, --dry-run` - Show what would be built without building
+
+### boot
+
+Build NixOS configuration and add boot entry without switching. Wraps `nh os boot`.
+
+```bash
+bonk boot                         # Build and add boot entry for current host
+bonk boot -H rune                 # Boot entry for specific host
+bonk boot -T root@192.168.1.50    # Deploy boot entry to remote host via SSH
+bonk boot -B buildserver          # Offload build to remote host
+bonk boot --local                 # Force local build (ignore BONK_BUILD_HOST)
+bonk boot -t                      # Enable --show-trace for debugging
+bonk boot -s https://cache.example.com -k "key:AAAA..."  # Use extra cache
+bonk boot -n                      # Dry run - show what would be built
+```
+
+Options:
+- `-H, --host <HOST>` - Target host (defaults to current hostname)
+- `-T, --target-host <HOST>` - Deploy to a remote host via SSH (e.g. root@192.168.1.50)
+- `-B, --build-host <HOST>` - Build on a remote host instead of locally
 - `--local` - Force local build, ignoring BONK_BUILD_HOST
 - `-t, --trace` - Enable --show-trace for debugging
 - `-s, --substituter <URL>` - Extra binary cache URL
@@ -355,7 +381,7 @@ cp target/release/build/bonk-*/out/completions/_bonk ~/.zsh/completions/
 
 Bonk wraps these tools (they need to be in your PATH):
 
-- `nh` - Used by rebuild and gc commands
+- `nh` - Used by switch/boot and gc commands
 - `nix` - Used by build, update, try, and store commands
 
 The NixOS and Home Manager modules automatically include `nh` as a dependency.
