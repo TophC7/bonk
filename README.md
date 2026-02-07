@@ -5,19 +5,17 @@
   bonk
 </h1>
 
-> NixOS workflow multitool - wraps `nh`, `nix`, and `nix-store` so you don't have to remember all the flags.
-
-Bonk is essentially yay.nix rewritten in Rust. It provides a simplified, user-friendly CLI for common NixOS and Home Manager operations. If you're tired of typing `sudo nixos-rebuild switch --flake .#hostname --show-trace --impure` for the millionth time, bonk is for you.
+> NixOS workflow multitool — Bonk is a simple wrapper around `nh`, `nix`, and `nix-store` so you don't have to remember all the flags. 
 
 ## Why bonk?
 
-- **Less typing** - `bonk s` instead of the whole rebuild dance
-- **Smart defaults** - Detects your hostname, finds your flake, remembers your preferences
+- **Less typing** - `bonk s` instead of the whole rebuild command
+- **Smart defaults** - Detects your hostname, finds your flake and remembers your preferences
 - **Remote builds** - Offload compilation to a build server with a single flag
 - **Store management** - GC, optimize, repair, and nuke commands in one place
 - **Shell completions** - Fish, Bash, and Zsh supported out of the box
 
-## Quick Start
+## Quick Bonks
 
 ```bash
 # Switch to your NixOS config
@@ -35,15 +33,19 @@ bonk store gc
 
 ## Commands
 
-### switch (alias: s)
+### switch (alias: s) / boot
 
-Build and activate NixOS configuration now. Wraps `nh os switch`.
+Both commands build your NixOS configuration and accept the same flags. The difference is activation:
+
+- **`switch`** - Activate immediately. Wraps `nh os switch`.
+- **`boot`** - Add boot entry without switching. Wraps `nh os boot`.
 
 ```bash
-bonk switch                       # Switch current host
+bonk switch                       # Build and activate now
 bonk s                            # Same thing, shorter
-bonk s -H rune                    # Switch specific host
-bonk s -T root@192.168.1.50       # Deploy to remote host via SSH
+bonk boot                         # Build, but only activate on next boot
+bonk s -H rune                    # Target a specific host config
+bonk s -T root@192.168.1.50       # Deploy to a machine via SSH
 bonk s -B buildserver             # Offload build to remote host
 bonk s --local                    # Force local build (ignore BONK_BUILD_HOST)
 bonk s -t                         # Enable --show-trace for debugging
@@ -52,33 +54,8 @@ bonk s -n                         # Dry run - show what would be built
 ```
 
 Options:
-- `-H, --host <HOST>` - Target host (defaults to current hostname)
-- `-T, --target-host <HOST>` - Deploy to a remote host via SSH (e.g. root@192.168.1.50)
-- `-B, --build-host <HOST>` - Build on a remote host instead of locally
-- `--local` - Force local build, ignoring BONK_BUILD_HOST
-- `-t, --trace` - Enable --show-trace for debugging
-- `-s, --substituter <URL>` - Extra binary cache URL
-- `-k, --key <KEY>` - Trusted public key for the cache
-- `-n, --dry-run` - Show what would be built without building
-
-### boot
-
-Build NixOS configuration and add boot entry without switching. Wraps `nh os boot`.
-
-```bash
-bonk boot                         # Build and add boot entry for current host
-bonk boot -H rune                 # Boot entry for specific host
-bonk boot -T root@192.168.1.50    # Deploy boot entry to remote host via SSH
-bonk boot -B buildserver          # Offload build to remote host
-bonk boot --local                 # Force local build (ignore BONK_BUILD_HOST)
-bonk boot -t                      # Enable --show-trace for debugging
-bonk boot -s https://cache.example.com -k "key:AAAA..."  # Use extra cache
-bonk boot -n                      # Dry run - show what would be built
-```
-
-Options:
-- `-H, --host <HOST>` - Target host (defaults to current hostname)
-- `-T, --target-host <HOST>` - Deploy to a remote host via SSH (e.g. root@192.168.1.50)
+- `-H, --host <HOST>` - Target host config (defaults to current hostname)
+- `-T, --target-host <HOST>` - Deploy to a remote host via SSH (e.g. root@192.168.1.50). Use when the target machine doesn't yet have the expected hostname.
 - `-B, --build-host <HOST>` - Build on a remote host instead of locally
 - `--local` - Force local build, ignoring BONK_BUILD_HOST
 - `-t, --trace` - Enable --show-trace for debugging
@@ -266,84 +243,22 @@ Add bonk to your flake inputs:
 
 > **Note:** The package is named `bonk-nix` to avoid conflicts with the `bonk` package in nixpkgs (which is a completely different thing).
 
-### NixOS Module
+### NixOS / Home Manager Module
 
-The NixOS module handles installation and sets up environment variables for you:
+Both modules work the same way. Add the appropriate module to your config:
 
-```nix
-# flake.nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    bonk = {
-      url = "github:tophc7/bonk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
+- NixOS: `bonk.nixosModules.default`
+- Home Manager: `bonk.homeManagerModules.default`
 
-  outputs = { self, nixpkgs, bonk, ... }: {
-    nixosConfigurations.yourhostname = nixpkgs.lib.nixosSystem {
-      modules = [
-        bonk.nixosModules.default
-        # your other modules...
-      ];
-    };
-  };
-}
-```
-
-Then in your NixOS configuration:
+Then configure:
 
 ```nix
-# configuration.nix
 {
   programs.bonk = {
     enable = true;
     flakePath = /home/user/nixos;  # Your flake location
     buildHost = null;              # null = local builds, or "buildserver"
     extraArgs = [ "--impure" ];    # Extra args passed to nh/nix
-  };
-}
-```
-
-### Home Manager Module
-
-Works the same way as the NixOS module:
-
-```nix
-# flake.nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    home-manager.url = "github:nix-community/home-manager";
-    bonk = {
-      url = "github:tophc7/bonk";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-
-  outputs = { self, nixpkgs, home-manager, bonk, ... }: {
-    homeConfigurations.you = home-manager.lib.homeManagerConfiguration {
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
-      modules = [
-        bonk.homeManagerModules.default
-        # your other modules...
-      ];
-    };
-  };
-}
-```
-
-Then in your Home Manager configuration:
-
-```nix
-# home.nix
-{
-  programs.bonk = {
-    enable = true;
-    flakePath = /home/user/nixos;
-    buildHost = null;
-    extraArgs = [ "--impure" ];
   };
 }
 ```
