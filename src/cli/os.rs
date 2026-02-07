@@ -1,12 +1,17 @@
-//! Rebuild command arguments.
+//! Shared arguments for `switch` and `boot` commands.
 
 use clap::Parser;
 
 #[derive(Parser, Debug)]
-pub struct RebuildArgs {
+pub struct OsArgs {
     /// Target host (defaults to current hostname).
     #[arg(short = 'H', long)]
     pub host: Option<String>,
+
+    /// Deploy to a remote host via SSH (e.g. root@192.168.1.50).
+    /// Use when the target machine doesn't yet have the expected hostname.
+    #[arg(short = 'T', long)]
+    pub target_host: Option<String>,
 
     /// Build on a remote host instead of locally.
     #[arg(short = 'B', long)]
@@ -38,21 +43,22 @@ mod tests {
     use super::*;
     use clap::Parser;
 
-    fn parse(args: &[&str]) -> RebuildArgs {
+    fn parse(args: &[&str]) -> OsArgs {
         #[derive(Parser)]
         struct Cli {
             #[command(flatten)]
-            rebuild: RebuildArgs,
+            os: OsArgs,
         }
         let mut full = vec!["test"];
         full.extend(args);
-        Cli::try_parse_from(full).unwrap().rebuild
+        Cli::try_parse_from(full).unwrap().os
     }
 
     #[test]
     fn test_default_args() {
         let args = parse(&[]);
         assert!(args.host.is_none());
+        assert!(args.target_host.is_none());
         assert!(args.build_host.is_none());
         assert!(!args.local);
         assert!(!args.trace);
@@ -63,6 +69,12 @@ mod tests {
     fn test_host_flag() {
         let args = parse(&["-H", "rune"]);
         assert_eq!(args.host, Some("rune".to_string()));
+    }
+
+    #[test]
+    fn test_target_host_flag() {
+        let args = parse(&["-T", "root@192.168.1.50"]);
+        assert_eq!(args.target_host, Some("root@192.168.1.50".to_string()));
     }
 
     #[test]

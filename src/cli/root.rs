@@ -7,7 +7,7 @@ use clap::{Parser, Subcommand};
 // Use explicit submodule paths for build.rs compatibility.
 // build.rs mirrors this structure so these paths resolve correctly there too.
 use super::build::BuildArgs;
-use super::rebuild::RebuildArgs;
+use super::os::OsArgs;
 use super::store::StoreCommands;
 use super::try_pkg::TryArgs;
 use super::update::UpdateArgs;
@@ -36,9 +36,13 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Rebuild NixOS/Home Manager configuration.
-    #[command(name = "rebuild", alias = "r")]
-    Rebuild(RebuildArgs),
+    /// Build and activate NixOS configuration now.
+    #[command(name = "switch", alias = "s")]
+    Switch(OsArgs),
+
+    /// Build NixOS configuration and add boot entry without switching.
+    #[command(name = "boot")]
+    Boot(OsArgs),
 
     /// Build packages into the Nix store.
     #[command(name = "build", alias = "b")]
@@ -65,26 +69,32 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_cli_parsing_rebuild() {
-        let cli = Cli::try_parse_from(["bonk", "rebuild"]).unwrap();
-        assert!(matches!(cli.command, Commands::Rebuild(_)));
+    fn test_cli_parsing_switch() {
+        let cli = Cli::try_parse_from(["bonk", "switch"]).unwrap();
+        assert!(matches!(cli.command, Commands::Switch(_)));
     }
 
     #[test]
-    fn test_cli_parsing_rebuild_alias() {
-        let cli = Cli::try_parse_from(["bonk", "r"]).unwrap();
-        assert!(matches!(cli.command, Commands::Rebuild(_)));
+    fn test_cli_parsing_switch_alias() {
+        let cli = Cli::try_parse_from(["bonk", "s"]).unwrap();
+        assert!(matches!(cli.command, Commands::Switch(_)));
+    }
+
+    #[test]
+    fn test_cli_parsing_boot() {
+        let cli = Cli::try_parse_from(["bonk", "boot"]).unwrap();
+        assert!(matches!(cli.command, Commands::Boot(_)));
     }
 
     #[test]
     fn test_cli_parsing_with_flake_path() {
-        let cli = Cli::try_parse_from(["bonk", "-p", "/path/to/flake", "rebuild"]).unwrap();
+        let cli = Cli::try_parse_from(["bonk", "-p", "/path/to/flake", "switch"]).unwrap();
         assert_eq!(cli.flake_path, Some(PathBuf::from("/path/to/flake")));
     }
 
     #[test]
     fn test_cli_parsing_verbose() {
-        let cli = Cli::try_parse_from(["bonk", "-v", "rebuild"]).unwrap();
+        let cli = Cli::try_parse_from(["bonk", "-v", "switch"]).unwrap();
         assert!(cli.verbose);
     }
 

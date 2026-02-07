@@ -24,8 +24,8 @@ use clap_complete::{generate_to, Shell};
 mod cli {
     #[path = "build.rs"]
     pub mod build;
-    #[path = "rebuild.rs"]
-    pub mod rebuild;
+    #[path = "os.rs"]
+    pub mod os;
     #[path = "root.rs"]
     mod root;
     #[path = "store.rs"]

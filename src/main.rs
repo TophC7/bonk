@@ -13,6 +13,7 @@ use clap::Parser;
 use tracing_subscriber::EnvFilter;
 
 use cli::{Cli, Commands, StoreCommands};
+use commands::os::OsAction;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -33,11 +34,17 @@ fn main() -> Result<()> {
     }
 
     match cli.command {
-        Commands::Rebuild(args) => {
+        Commands::Switch(args) => {
             if cli.verbose {
-                output::status("Running rebuild command");
+                output::status("Running switch command");
             }
-            commands::rebuild::run(&args, cli.flake_path.as_deref())?;
+            commands::os::run(OsAction::Switch, &args, cli.flake_path.as_deref())?;
+        }
+        Commands::Boot(args) => {
+            if cli.verbose {
+                output::status("Running boot command");
+            }
+            commands::os::run(OsAction::Boot, &args, cli.flake_path.as_deref())?;
         }
         Commands::Build(args) => {
             if cli.verbose {
