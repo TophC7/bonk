@@ -40,9 +40,22 @@ impl OsAction {
 ///
 /// Returns an error if hostname detection, flake resolution, or the nh command fails.
 pub fn run(action: OsAction, args: &OsArgs, flake_path: Option<&Path>) -> Result<()> {
+    // Resolve which NixOS flake configuration to build (-H).
     let host = match &args.host {
         Some(h) => h.clone(),
         None => get_hostname().context("could not determine hostname for rebuild")?,
+    };
+
+    // Resolve where to deploy (-T / --target-host):
+    //  -TH zebes           -> deploy to the -H host (zebes)
+    //  --target-host addr   -> deploy to a specific SSH address
+    //  neither              -> local deploy (no --target-host passed to nh)
+    let deploy_target = if let Some(ref th) = args.target_host {
+        Some(th.clone())
+    } else if args.target {
+        Some(host.clone())
+    } else {
+        None
     };
 
     let flake = resolve_flake_path(flake_path)?;
@@ -61,8 +74,8 @@ pub fn run(action: OsAction, args: &OsArgs, flake_path: Option<&Path>) -> Result
         host, label
     ));
 
-    if let Some(ref th) = args.target_host {
-        output::status(&format!("Deploying to target host: {}", th));
+    if let Some(ref dt) = deploy_target {
+        output::status(&format!("Deploying to target host: {}", dt));
     }
     if let Some(ref bh) = build_host {
         output::status(&format!("Building on remote host: {}", bh));
@@ -73,8 +86,8 @@ pub fn run(action: OsAction, args: &OsArgs, flake_path: Option<&Path>) -> Result
         .arg(&flake)
         .args(["-H", &host]);
 
-    if let Some(ref th) = args.target_host {
-        runner = runner.args(["--target-host", th]);
+    if let Some(ref dt) = deploy_target {
+        runner = runner.args(["--target-host", dt]);
     }
     if let Some(ref bh) = build_host {
         runner = runner.args(["--build-host", bh]);

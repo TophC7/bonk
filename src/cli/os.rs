@@ -4,13 +4,20 @@ use clap::Parser;
 
 #[derive(Parser, Debug)]
 pub struct OsArgs {
-    /// Target host (defaults to current hostname).
+    /// NixOS flake configuration to build (e.g. `zebes` selects
+    /// `nixosConfigurations.zebes`). Defaults to the current hostname.
+    /// Does NOT control where the result is deployed -- use `-T` for that.
     #[arg(short = 'H', long)]
     pub host: Option<String>,
 
-    /// Deploy to a remote host via SSH (e.g. root@192.168.1.50).
-    /// Use when the target machine doesn't yet have the expected hostname.
+    /// Also deploy the built configuration to the `-H` host via SSH.
+    /// Combine as `-TH <host>` to select and deploy in one shot.
     #[arg(short = 'T', long)]
+    pub target: bool,
+
+    /// Deploy to a specific SSH target that differs from `-H`
+    /// (e.g. `root@192.168.1.50` for a machine not yet renamed).
+    #[arg(long)]
     pub target_host: Option<String>,
 
     /// Build on a remote host instead of locally.
@@ -58,6 +65,7 @@ mod tests {
     fn test_default_args() {
         let args = parse(&[]);
         assert!(args.host.is_none());
+        assert!(!args.target);
         assert!(args.target_host.is_none());
         assert!(args.build_host.is_none());
         assert!(!args.local);
@@ -72,9 +80,25 @@ mod tests {
     }
 
     #[test]
-    fn test_target_host_flag() {
-        let args = parse(&["-T", "root@192.168.1.50"]);
+    fn test_combined_target_host() {
+        // -TH zebes: -T (bool) + -H zebes (value)
+        let args = parse(&["-TH", "zebes"]);
+        assert!(args.target);
+        assert_eq!(args.host, Some("zebes".to_string()));
+    }
+
+    #[test]
+    fn test_target_flag_alone() {
+        let args = parse(&["-T"]);
+        assert!(args.target);
+        assert!(args.host.is_none());
+    }
+
+    #[test]
+    fn test_target_host_long() {
+        let args = parse(&["--target-host", "root@192.168.1.50"]);
         assert_eq!(args.target_host, Some("root@192.168.1.50".to_string()));
+        assert!(!args.target);
     }
 
     #[test]

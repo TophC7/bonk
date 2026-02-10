@@ -44,8 +44,9 @@ Both commands build your NixOS configuration and accept the same flags. The diff
 bonk switch                       # Build and activate now
 bonk s                            # Same thing, shorter
 bonk boot                         # Build, but only activate on next boot
-bonk s -H rune                    # Target a specific host config
-bonk s -T root@192.168.1.50       # Deploy to a machine via SSH
+bonk s -H rune                    # Build a specific host config
+bonk s -TH zebes                  # Build config for zebes and deploy via SSH
+bonk s -H zebes --target-host root@192.168.1.50  # Deploy to a different SSH address
 bonk s -B buildserver             # Offload build to remote host
 bonk s --local                    # Force local build (ignore BONK_BUILD_HOST)
 bonk s -t                         # Enable --show-trace for debugging
@@ -54,8 +55,9 @@ bonk s -n                         # Dry run - show what would be built
 ```
 
 Options:
-- `-H, --host <HOST>` - Target host config (defaults to current hostname)
-- `-T, --target-host <HOST>` - Deploy to a remote host via SSH (e.g. root@192.168.1.50). Use when the target machine doesn't yet have the expected hostname.
+- `-H, --host <HOST>` - Select which NixOS flake configuration to build (defaults to current hostname)
+- `-T, --target` - Also deploy to the -H host via SSH. Combine as `-TH <host>` to select a config and deploy in one shot.
+- `--target-host <HOST>` - Deploy to a specific SSH target when it differs from -H (e.g. root@192.168.1.50)
 - `-B, --build-host <HOST>` - Build on a remote host instead of locally
 - `--local` - Force local build, ignoring BONK_BUILD_HOST
 - `-t, --trace` - Enable --show-trace for debugging
