@@ -59,7 +59,9 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [
       bonkFlake.packages.${pkgs.system}.default
-      pkgs.nh  # Required for rebuild, gc commands
+      # Use nh from bonk's flake input (master) for --build-host fix (PR #497).
+      # nixpkgs nh 4.2.0 silently ignores --build-host.
+      bonkFlake.inputs.nh.packages.${pkgs.system}.default
     ];
 
     home.sessionVariables = lib.filterAttrs (_: v: v != null) {

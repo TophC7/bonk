@@ -8,6 +8,12 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Pin nh to master for --build-host fix (PR #497).
+    # nixpkgs still ships 4.2.0 which silently ignores --build-host.
+    nh = {
+      url = "github:nix-community/nh";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -16,6 +22,7 @@
       nixpkgs,
       flake-utils,
       rust-overlay,
+      nh,
     }:
     # System-agnostic outputs
     {

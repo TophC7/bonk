@@ -14,7 +14,12 @@
 
 bonkFlake:
 
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.programs.bonk;
@@ -52,20 +57,24 @@ in
         Extra arguments passed to nh/nix commands.
         These are appended after the -- separator.
       '';
-      example = [ "--impure" "--verbose" ];
+      example = [
+        "--impure"
+        "--verbose"
+      ];
     };
   };
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [
       bonkFlake.packages.${pkgs.system}.default
-      pkgs.nh  # Required for rebuild, gc commands
+      # Use nh from bonk's flake, faster updates
+      bonkFlake.inputs.nh.packages.${pkgs.system}.default
     ];
 
     environment.sessionVariables = lib.filterAttrs (_: v: v != null) {
       BONK_FLAKE_PATH = lib.mkIf (cfg.flakePath != null) (toString cfg.flakePath);
       BONK_BUILD_HOST = lib.mkIf (cfg.buildHost != null) cfg.buildHost;
-      BONK_EXTRA_ARGS = lib.mkIf (cfg.extraArgs != []) (lib.concatStringsSep ":" cfg.extraArgs);
+      BONK_EXTRA_ARGS = lib.mkIf (cfg.extraArgs != [ ]) (lib.concatStringsSep ":" cfg.extraArgs);
     };
   };
 }
