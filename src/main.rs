@@ -87,7 +87,7 @@ fn main() -> Result<()> {
                 if cli.verbose {
                     output::status("Running store nuke command");
                 }
-                commands::store::nuke::run(&args)?;
+                commands::store::nuke::run(&args, cli.flake_path.as_deref())?;
             }
             StoreCommands::Info(args) => {
                 if cli.verbose {

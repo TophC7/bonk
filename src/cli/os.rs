@@ -2,7 +2,7 @@
 
 use clap::Parser;
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Default)]
 pub struct OsArgs {
     /// NixOS flake configuration to build (e.g. `zebes` selects
     /// `nixosConfigurations.zebes`). Defaults to the current hostname.

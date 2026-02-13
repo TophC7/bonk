@@ -67,6 +67,14 @@ pub struct NukeArgs {
     /// Also remove result symlinks in current directory.
     #[arg(short, long)]
     pub remove_results: bool,
+
+    /// Skip the automatic rebuild after cleanup.
+    ///
+    /// By default, nuke runs `nh os boot` after cleanup to regenerate boot
+    /// entries. Without this rebuild the system may be unbootable on next
+    /// restart. Only use this flag if you plan to rebuild manually.
+    #[arg(long)]
+    pub no_rebuild: bool,
 }
 
 #[derive(Parser, Debug)]

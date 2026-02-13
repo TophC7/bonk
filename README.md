@@ -5,7 +5,7 @@
   bonk
 </h1>
 
-> NixOS workflow multitool — Bonk is a simple wrapper around `nh`, `nix`, and `nix-store` so you don't have to remember all the flags. 
+> NixOS workflow multitool — Bonk is a simple wrapper around `nh`, `nix`, and `nix-store` so you don't have to remember all the flags.
 
 ## Why bonk?
 
@@ -55,6 +55,7 @@ bonk s -n                         # Dry run - show what would be built
 ```
 
 Options:
+
 - `-H, --host <HOST>` - Select which NixOS flake configuration to build (defaults to current hostname)
 - `-T, --target` - Also deploy to the -H host via SSH. Combine as `-TH <host>` to select a config and deploy in one shot.
 - `--target-host <HOST>` - Deploy to a specific SSH target when it differs from -H (e.g. root@192.168.1.50)
@@ -82,6 +83,7 @@ bonk b -n                         # Dry run
 ```
 
 Options:
+
 - `<TARGET>` - Package or flake output to build (default package if empty)
 - `-H, --build-host <HOST>` - Build on a remote host (overrides BONK_BUILD_HOST)
 - `-l, --local` - Force local build, ignoring BONK_BUILD_HOST
@@ -103,6 +105,7 @@ bonk u --commit                   # Commit the lock file changes
 ```
 
 Options:
+
 - `<INPUTS>` - Specific inputs to update (all if empty)
 - `-c, --commit` - Commit the lock file changes
 
@@ -119,6 +122,7 @@ bonk try python3 --pure -- python -c "print('hi')"
 ```
 
 Options:
+
 - `<PACKAGES>` - Packages to make available (required)
 - `[COMMAND]` - Command to run after `--` (interactive shell if empty)
 - `--pure` - Use a pure shell with no inherited environment
@@ -141,6 +145,7 @@ bonk store gc -n                  # Dry run
 ```
 
 Options:
+
 - `-o, --older-than <DURATION>` - Delete generations older than this (e.g., 7d, 2w, 1m)
 - `-k, --keep <N>` - Keep at least this many generations (default: 3)
 - `-n, --dry-run` - Show what would be deleted without deleting
@@ -155,6 +160,7 @@ bonk store optimize -n            # Show potential savings without optimizing
 ```
 
 Options:
+
 - `-n, --dry-run` - Show potential savings without optimizing
 
 #### store repair
@@ -168,22 +174,26 @@ bonk store repair --check-only    # Only verify, don't repair
 ```
 
 Options:
+
 - `<PATHS>` - Specific store paths to repair (all if empty)
 - `-c, --check-only` - Only verify, don't repair
 
 #### store nuke
 
-Aggressive full cleanup. Removes all old generations and performs deep GC.
+Aggressive full cleanup. Removes all old generations and performs deep GC. Automatically rebuilds boot entries via `nh os boot` after cleanup to keep the system bootable.
 
 ```bash
-bonk store nuke                   # Full cleanup (will prompt for confirmation)
+bonk store nuke                   # Full cleanup + rebuild boot entries (will prompt for confirmation)
 bonk store nuke -y                # Skip confirmation
 bonk store nuke -r                # Also remove result symlinks in current directory
+bonk store nuke --no-rebuild      # Skip automatic boot entry rebuild (Bad Idea)
 ```
 
 Options:
+
 - `-y, --yes` - Skip confirmation prompt
 - `-r, --remove-results` - Also remove result symlinks in current directory
+- `--no-rebuild` - Skip automatic boot entry rebuild after cleanup
 
 #### store info
 
@@ -195,6 +205,7 @@ bonk store info -d                # Show detailed breakdown
 ```
 
 Options:
+
 - `-d, --detailed` - Show detailed breakdown
 
 ## Global Options
@@ -208,12 +219,12 @@ These apply to all commands:
 
 Configure bonk's defaults with environment variables:
 
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `BONK_FLAKE_PATH` | Default flake path | `/home/user/nixos` |
-| `BONK_BUILD_HOST` | Default remote build host | `buildserver` |
-| `BONK_EXTRA_ARGS` | Extra args passed to nh/nix (colon-separated) | `--impure:--verbose` |
-| `FLAKE` | Fallback flake path (if BONK_FLAKE_PATH is unset) | `/home/user/nixos` |
+| Variable          | Purpose                                           | Example              |
+| ----------------- | ------------------------------------------------- | -------------------- |
+| `BONK_FLAKE_PATH` | Default flake path                                | `/home/user/nixos`   |
+| `BONK_BUILD_HOST` | Default remote build host                         | `buildserver`        |
+| `BONK_EXTRA_ARGS` | Extra args passed to nh/nix (colon-separated)     | `--impure:--verbose` |
+| `FLAKE`           | Fallback flake path (if BONK_FLAKE_PATH is unset) | `/home/user/nixos`   |
 
 ## Installation
 
