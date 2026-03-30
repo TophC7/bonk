@@ -15,6 +15,10 @@ pub struct TryArgs {
     /// Use a pure shell (no inherited environment).
     #[arg(long)]
     pub pure: bool,
+
+    /// Allow unfree packages (sets NIXPKGS_ALLOW_UNFREE=1 and --impure).
+    #[arg(short, long)]
+    pub unfree: bool,
 }
 
 #[cfg(test)]
@@ -59,6 +63,16 @@ mod tests {
     #[test]
     fn test_pure_flag() {
         assert!(parse(&["python3", "--pure"]).pure);
+    }
+
+    #[test]
+    fn test_unfree_flag() {
+        assert!(parse(&["discord", "--unfree"]).unfree);
+    }
+
+    #[test]
+    fn test_unfree_short_flag() {
+        assert!(parse(&["discord", "-u"]).unfree);
     }
 
     #[test]

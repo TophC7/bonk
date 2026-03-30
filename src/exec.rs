@@ -10,6 +10,7 @@ use crate::output;
 pub struct CommandRunner {
     program: String,
     args: Vec<String>,
+    envs: Vec<(String, String)>,
     show_command: bool,
     inherit_stdio: bool,
 }
@@ -20,9 +21,17 @@ impl CommandRunner {
         Self {
             program: program.into(),
             args: Vec::new(),
+            envs: Vec::new(),
             show_command: true,
             inherit_stdio: true,
         }
+    }
+
+    /// Set an environment variable for the spawned process.
+    #[must_use]
+    pub fn env(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.envs.push((key.into(), value.into()));
+        self
     }
 
     #[must_use]
@@ -101,6 +110,9 @@ impl CommandRunner {
 
         let mut cmd = Command::new(&self.program);
         cmd.args(&self.args);
+        for (key, value) in &self.envs {
+            cmd.env(key, value);
+        }
 
         if self.inherit_stdio {
             cmd.stdin(Stdio::inherit())
@@ -117,8 +129,12 @@ impl CommandRunner {
             output::show_cmd(&self.command_string());
         }
 
-        let output = Command::new(&self.program)
-            .args(&self.args)
+        let mut cmd = Command::new(&self.program);
+        cmd.args(&self.args);
+        for (key, value) in &self.envs {
+            cmd.env(key, value);
+        }
+        let output = cmd
             .output()
             .with_context(|| format!("failed to execute '{}'", self.program))?;
 

@@ -31,6 +31,11 @@ pub fn run(args: &TryArgs) -> Result<()> {
 
     runner = runner.arg_if(args.pure, "--ignore-environment");
 
+    // Unfree packages require --impure so nix can read the env var
+    if args.unfree {
+        runner = runner.env("NIXPKGS_ALLOW_UNFREE", "1").arg("--impure");
+    }
+
     if !args.cmd.is_empty() {
         runner = runner.arg("--command");
         for arg in &args.cmd {
