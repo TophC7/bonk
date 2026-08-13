@@ -1,5 +1,7 @@
 //! External command execution utilities.
 
+use std::ffi::{OsStr, OsString};
+use std::os::unix::process::CommandExt;
 use std::process::{Command, ExitStatus, Stdio};
 
 use anyhow::{Context, Result};
@@ -9,7 +11,7 @@ use crate::output;
 /// Builder for executing external commands.
 pub struct CommandRunner {
     program: String,
-    args: Vec<String>,
+    args: Vec<OsString>,
     envs: Vec<(String, String)>,
     show_command: bool,
     inherit_stdio: bool,
@@ -38,14 +40,14 @@ impl CommandRunner {
     pub fn args<I, S>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = S>,
-        S: Into<String>,
+        S: Into<OsString>,
     {
         self.args.extend(args.into_iter().map(Into::into));
         self
     }
 
     #[must_use]
-    pub fn arg(mut self, arg: impl Into<String>) -> Self {
+    pub fn arg(mut self, arg: impl Into<OsString>) -> Self {
         self.args.push(arg.into());
         self
     }
@@ -55,7 +57,7 @@ impl CommandRunner {
     pub fn args_if<I, S>(self, condition: bool, args: I) -> Self
     where
         I: IntoIterator<Item = S>,
-        S: Into<String>,
+        S: Into<OsString>,
     {
         if condition {
             self.args(args)
@@ -65,7 +67,7 @@ impl CommandRunner {
     }
 
     #[must_use]
-    pub fn arg_if(self, condition: bool, arg: impl Into<String>) -> Self {
+    pub fn arg_if(self, condition: bool, arg: impl Into<OsString>) -> Self {
         if condition {
             self.arg(arg)
         } else {
@@ -86,9 +88,9 @@ impl CommandRunner {
     }
 
     fn command_string(&self) -> String {
-        std::iter::once(&self.program)
-            .chain(self.args.iter())
-            .cloned()
+        std::iter::once(OsStr::new(&self.program))
+            .chain(self.args.iter().map(OsString::as_os_str))
+            .map(|argument| argument.to_string_lossy().into_owned())
             .collect::<Vec<_>>()
             .join(" ")
     }
@@ -108,20 +110,25 @@ impl CommandRunner {
             output::show_cmd(&self.command_string());
         }
 
-        let mut cmd = Command::new(&self.program);
-        cmd.args(&self.args);
-        for (key, value) in &self.envs {
-            cmd.env(key, value);
-        }
-
-        if self.inherit_stdio {
-            cmd.stdin(Stdio::inherit())
-                .stdout(Stdio::inherit())
-                .stderr(Stdio::inherit());
-        }
-
-        cmd.status()
+        self.command(self.inherit_stdio)
+            .status()
             .with_context(|| format!("failed to execute '{}'", self.program))
+    }
+
+    /// Replace Bonk with the configured command.
+    ///
+    /// This preserves the command's exit status and signal behavior.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error only when the operating system cannot execute the command.
+    pub fn exec(self) -> Result<()> {
+        if self.show_command {
+            output::show_cmd(&self.command_string());
+        }
+
+        let error = self.command(self.inherit_stdio).exec();
+        Err(error).with_context(|| format!("failed to execute '{}'", self.program))
     }
 
     pub fn run_output(self) -> Result<(String, String)> {
@@ -129,12 +136,8 @@ impl CommandRunner {
             output::show_cmd(&self.command_string());
         }
 
-        let mut cmd = Command::new(&self.program);
-        cmd.args(&self.args);
-        for (key, value) in &self.envs {
-            cmd.env(key, value);
-        }
-        let output = cmd
+        let output = self
+            .command(false)
             .output()
             .with_context(|| format!("failed to execute '{}'", self.program))?;
 
@@ -150,6 +153,21 @@ impl CommandRunner {
             String::from_utf8(output.stderr).context("command stderr contained invalid UTF-8")?;
 
         Ok((stdout, stderr))
+    }
+
+    fn command(&self, inherit_stdio: bool) -> Command {
+        let mut command = Command::new(&self.program);
+        command.args(&self.args);
+        command.envs(self.envs.iter().map(|(key, value)| (key, value)));
+
+        if inherit_stdio {
+            command
+                .stdin(Stdio::inherit())
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit());
+        }
+
+        command
     }
 }
 

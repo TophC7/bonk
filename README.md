@@ -24,6 +24,9 @@ bonk switch
 # Update all flake inputs
 bonk update
 
+# Enter the current project's development shell
+bonk dev
+
 # Try a package without installing
 bonk try cowsay -- cowsay "moo"
 
@@ -108,6 +111,32 @@ Options:
 
 - `<INPUTS>` - Specific inputs to update (all if empty)
 - `-c, --commit` - Commit the lock file changes
+
+### dev
+
+Enter a flake's declared development environment. Wraps `nix develop`, but opens the
+user's configured shell instead of Nix's default Bash.
+
+```bash
+bonk dev                          # Enter the default dev shell
+bonk dev frontend                 # Enter the named .#frontend dev shell
+bonk dev --impure                 # Allow mutable paths and repositories
+bonk dev -- cargo test            # Run a command in the default dev shell
+bonk dev frontend -- cargo test   # Run a command in a named dev shell
+bonk dev --bash                   # Use plain nix develop with its default Bash
+```
+
+Options:
+
+- `<SHELL>` - Named dev shell (the flake's default when omitted)
+- `--bash` - Use Nix's default Bash instead of the user's configured shell
+- `--impure` - Allow access to mutable paths and repositories
+- `[COMMAND]` - Command to run after `--` instead of opening an interactive shell
+
+Bonk uses `$SHELL`, then the current user's configured login shell. If neither is
+available, it falls back to plain `nix develop`. The flake's `shellHook` still runs.
+Bonk searches the current directory and its
+ancestors for `flake.nix` without changing the working directory.
 
 ### try
 
@@ -310,7 +339,7 @@ cp target/release/build/bonk-*/out/completions/_bonk ~/.zsh/completions/
 Bonk wraps these tools (they need to be in your PATH):
 
 - `nh` - Used by switch/boot and gc commands
-- `nix` - Used by build, update, try, and store commands
+- `nix` - Used by build, update, dev, try, and store commands
 
 The NixOS and Home Manager modules automatically include `nh` as a dependency.
 

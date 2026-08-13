@@ -64,6 +64,12 @@ fn main() -> Result<()> {
             }
             commands::try_pkg::run(&args)?;
         }
+        Commands::Dev(args) => {
+            if cli.verbose {
+                output::status("Running dev command");
+            }
+            commands::dev::run(&args, cli.flake_path.as_deref())?;
+        }
         Commands::Store { command } => match command {
             StoreCommands::Gc(args) => {
                 if cli.verbose {

@@ -6,6 +6,7 @@
 
 // All modules are public so lib.rs consumers can access types for codegen
 pub mod build;
+pub mod dev;
 pub mod os;
 pub mod root;
 pub mod store;
@@ -13,6 +14,7 @@ pub mod try_pkg;
 pub mod update;
 
 pub use build::BuildArgs;
+pub use dev::DevArgs;
 pub use os::OsArgs;
 pub use root::{Cli, Commands};
 pub use store::StoreCommands;

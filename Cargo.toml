@@ -26,6 +26,9 @@ owo-colors = "4"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+# NSS-aware login shell lookup
+users = "0.11"
+
 [build-dependencies]
 # Shell completion generation at build time (fish, bash, zsh, etc.)
 clap = { version = "4", features = ["derive", "env"] }
@@ -34,6 +37,7 @@ clap_complete = "4"
 [dev-dependencies]
 # Serial test execution for tests that modify global state (env vars)
 serial_test = "3"
+tempfile = "3"
 
 [profile.release]
 opt-level = "s"
