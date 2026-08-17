@@ -40,6 +40,10 @@ pub struct OsArgs {
     #[arg(short = 'k', long)]
     pub key: Option<String>,
 
+    /// Never prompt for an elevation password. Requires passwordless elevation.
+    #[arg(long, env = "BONK_NO_PASSWORD")]
+    pub no_password: bool,
+
     /// Show what would be built without building.
     #[arg(short = 'n', long)]
     pub dry_run: bool,
@@ -47,15 +51,18 @@ pub struct OsArgs {
 
 #[cfg(test)]
 mod tests {
+    use std::ffi::OsStr;
+
     use super::*;
-    use clap::Parser;
+    use clap::{CommandFactory, Parser};
+
+    #[derive(Parser)]
+    struct Cli {
+        #[command(flatten)]
+        os: OsArgs,
+    }
 
     fn parse(args: &[&str]) -> OsArgs {
-        #[derive(Parser)]
-        struct Cli {
-            #[command(flatten)]
-            os: OsArgs,
-        }
         let mut full = vec!["test"];
         full.extend(args);
         Cli::try_parse_from(full).unwrap().os
@@ -70,6 +77,7 @@ mod tests {
         assert!(args.build_host.is_none());
         assert!(!args.local);
         assert!(!args.trace);
+        assert!(!args.no_password);
         assert!(!args.dry_run);
     }
 
@@ -125,6 +133,22 @@ mod tests {
             Some("https://cache.example.com".to_string())
         );
         assert_eq!(args.key, Some("key:AAAA...".to_string()));
+    }
+
+    #[test]
+    fn test_no_password_flag() {
+        assert!(parse(&["--no-password"]).no_password);
+    }
+
+    #[test]
+    fn test_no_password_environment_default() {
+        let command = Cli::command();
+        let argument = command
+            .get_arguments()
+            .find(|argument| argument.get_id() == "no_password")
+            .expect("no_password argument should exist");
+
+        assert_eq!(argument.get_env(), Some(OsStr::new("BONK_NO_PASSWORD")));
     }
 
     #[test]

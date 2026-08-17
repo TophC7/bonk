@@ -53,6 +53,7 @@ bonk s -H zebes --target-host root@192.168.1.50  # Deploy to a different SSH add
 bonk s -B buildserver             # Offload build to remote host
 bonk s --local                    # Force local build (ignore BONK_BUILD_HOST)
 bonk s -t                         # Enable --show-trace for debugging
+bonk s --no-password              # Never stop for an elevation password
 bonk s -s https://cache.example.com -k "key:AAAA..."  # Use extra cache
 bonk s -n                         # Dry run - show what would be built
 ```
@@ -65,6 +66,7 @@ Options:
 - `-B, --build-host <HOST>` - Build on a remote host instead of locally
 - `--local` - Force local build, ignoring BONK_BUILD_HOST
 - `-t, --trace` - Enable --show-trace for debugging
+- `--no-password` - Never prompt for an elevation password; requires passwordless elevation
 - `-s, --substituter <URL>` - Extra binary cache URL
 - `-k, --key <KEY>` - Trusted public key for the cache
 - `-n, --dry-run` - Show what would be built without building
@@ -252,8 +254,9 @@ Configure bonk's defaults with environment variables:
 | ----------------- | ------------------------------------------------- | -------------------- |
 | `BONK_FLAKE_PATH` | Default flake path                                | `/home/user/nixos`   |
 | `BONK_BUILD_HOST` | Default remote build host                         | `buildserver`        |
-| `BONK_EXTRA_ARGS` | Extra args passed to nh/nix (colon-separated)     | `--impure:--verbose` |
-| `FLAKE`           | Fallback flake path (if BONK_FLAKE_PATH is unset) | `/home/user/nixos`   |
+| `BONK_EXTRA_ARGS`  | Extra args passed to nh/nix (colon-separated)     | `--impure:--verbose` |
+| `BONK_NO_PASSWORD` | Enable `--no-password` by default                  | `true`               |
+| `FLAKE`            | Fallback flake path (if BONK_FLAKE_PATH is unset) | `/home/user/nixos`   |
 
 ## Installation
 
@@ -300,6 +303,7 @@ Then configure:
     enable = true;
     flakePath = /home/user/nixos;  # Your flake location
     buildHost = null;              # null = local builds, or "buildserver"
+    noPassword = true;             # Never stop for an elevation password
     extraArgs = [ "--impure" ];    # Extra args passed to nh/nix
   };
 }

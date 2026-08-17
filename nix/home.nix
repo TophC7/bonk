@@ -9,6 +9,7 @@
 #     enable = true;
 #     flakePath = "/repo/Nix/dot.nix";
 #     buildHost = null;  # null = local builds
+#     noPassword = false;
 #     extraArgs = [ "--impure" ];
 #   };
 
@@ -45,6 +46,15 @@ in
       example = "buildserver";
     };
 
+    noPassword = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Never prompt for an elevation password during switch or boot.
+        Requires passwordless elevation on the target host.
+      '';
+    };
+
     extraArgs = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ "--impure" ];
@@ -67,6 +77,7 @@ in
     home.sessionVariables = lib.filterAttrs (_: v: v != null) {
       BONK_FLAKE_PATH = lib.mkIf (cfg.flakePath != null) (toString cfg.flakePath);
       BONK_BUILD_HOST = lib.mkIf (cfg.buildHost != null) cfg.buildHost;
+      BONK_NO_PASSWORD = lib.mkIf cfg.noPassword "true";
       BONK_EXTRA_ARGS = lib.mkIf (cfg.extraArgs != []) (lib.concatStringsSep ":" cfg.extraArgs);
     };
   };

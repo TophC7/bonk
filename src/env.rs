@@ -3,8 +3,9 @@
 //! | Variable          | Purpose                            |
 //! |-------------------|------------------------------------|
 //! | `BONK_FLAKE_PATH` | Default flake path                 |
-//! | `BONK_BUILD_HOST` | Default build host (empty = local) |
-//! | `BONK_EXTRA_ARGS` | Extra args (colon-separated)       |
+//! | `BONK_BUILD_HOST`  | Default build host (empty = local) |
+//! | `BONK_EXTRA_ARGS`  | Extra args (colon-separated)       |
+//! | `BONK_NO_PASSWORD` | Never prompt for elevation password |
 
 use std::env;
 use std::path::PathBuf;

@@ -83,6 +83,7 @@ pub fn run(action: OsAction, args: &OsArgs, flake_path: Option<&Path>) -> Result
 
     let mut runner = CommandRunner::new("nh")
         .args(["os", label])
+        .args_if(args.no_password, ["--elevation-strategy", "passwordless"])
         .arg(&flake)
         .args(["-H", &host]);
 
